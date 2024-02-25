@@ -1,7 +1,7 @@
 import datetime
-from api.line_api import Event, notify
-from api.gate import validate_user, UserNotFound
-from api.webhook import dispatcher, humor
+from app.line_api import Event, notify
+from app.gate import validate_user, UserNotFound
+from app.webhook import dispatcher, humor
 
 
 def handle(event_json):

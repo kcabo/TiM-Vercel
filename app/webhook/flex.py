@@ -2,7 +2,7 @@ import os
 import datetime
 from copy import deepcopy
 
-from api.webhook import flex_components as components
+from app.webhook import flex_components as components
 
 layer_capacity = 4
 

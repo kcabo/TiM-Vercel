@@ -1,5 +1,5 @@
-from api.models import db, User
-from api.redis_setup import conn
+from app.models import db, User
+from app.redis_setup import conn
 
 
 class UserNotFound(Exception):
