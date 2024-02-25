@@ -1,6 +1,6 @@
 import re
 from itertools import zip_longest
-from app.models import Record, Menu
+from _app.models import Record, Menu
 
 # CSV内での改行コードはCRLF
 # めちゃくちゃだあ

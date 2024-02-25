@@ -1,13 +1,13 @@
 import os
 from flask import Flask, request, render_template, jsonify, make_response
 
-from app.models import db, Menu
-from app.webhook import handler
+from _app.models import db, Menu
+from _app.webhook import handler
 
 LIFF_ID = os.environ["LIFF_ID"]
 
 app = Flask(__name__, template_folder="liff/templates", static_folder="liff/static")
-app.config.from_object("app.config.Config")
+app.config.from_object("_app.config.Config")
 db.init_app(app)
 
 
