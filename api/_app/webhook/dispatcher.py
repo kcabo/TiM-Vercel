@@ -1,8 +1,8 @@
 import datetime
 
-from _app.models import db, Menu, Record, User
-from _app.webhook import flex, mailer, forge
-from _app.webhook.csv_constructor import construct_csv
+from ..models import db, Menu, Record, User
+from ..webhook import flex, mailer, forge
+from ..webhook.csv_constructor import construct_csv
 
 
 def view_menus(event, target_date: datetime.date):

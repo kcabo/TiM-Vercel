@@ -1,7 +1,7 @@
 import os
 import requests
 
-from _app.redis_setup import conn
+from redis_setup import conn
 
 ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
 ENV = os.environ["FLASK_ENV"]  # 環境判定
