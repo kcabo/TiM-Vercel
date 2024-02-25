@@ -1,15 +1,15 @@
 import datetime
 
-from app.models import db, Menu, Record, User
-from app.webhook import flex, mailer, forge
-from app.webhook.csv_constructor import construct_csv
+from api.models import db, Menu, Record, User
+from api.webhook import flex, mailer, forge
+from api.webhook.csv_constructor import construct_csv
 
 
 def view_menus(event, target_date: datetime.date):
-    int_date = int(target_date.strftime('%y%m%d')) # unsafe
+    int_date = int(target_date.strftime("%y%m%d"))  # unsafe
     menus = Menu.query.filter_by(date=int_date).order_by(Menu.menuid).all()
     flex_menus = flex.build_menus(target_date, menus)
-    alt_text = 'メニュー一覧'
+    alt_text = "メニュー一覧"
     event.send_flex(alt_text, [flex_menus])
 
     # メニューが登録されていればそのメニューを選択していることにする
@@ -23,7 +23,8 @@ def view_menus(event, target_date: datetime.date):
 
 def view_records_scroll(event):
     menu_q = fetch_current_menu(event)
-    if menu_q is None: return None
+    if menu_q is None:
+        return None
 
     # タイムを全取得
     records = Record.query.filter_by(menuid=event.menu_id).all()
@@ -32,19 +33,20 @@ def view_records_scroll(event):
     flex_records_scroll = flex.build_records_scroll(records)
     flex_msgs = [flex_menu_transaction, flex_records_scroll]
 
-    alt_text = 'タイム一覧'
+    alt_text = "タイム一覧"
     event.send_flex(alt_text, flex_msgs)
 
 
 def export_by_mail(event):
     menu_q = fetch_current_menu(event)
-    if menu_q is None: return None
+    if menu_q is None:
+        return None
 
     int_date = menu_q.date
     all_menus = Menu.query.filter_by(date=int_date).order_by(Menu.menuid).all()
     csv = construct_csv(all_menus)
 
-    target_date = datetime.datetime.strptime(str(int_date),'%y%m%d').date()
+    target_date = datetime.datetime.strptime(str(int_date), "%y%m%d").date()
     user = User.query.filter_by(lineid=event.line_id).one()
 
     try:
@@ -52,38 +54,40 @@ def export_by_mail(event):
 
     # メールがうまく送れなかったときにFeedback
     except Exception as e:
-        event.send_text('メール送信に失敗しました...')
+        event.send_text("メール送信に失敗しました...")
     else:
         event.send_thank_msg()
 
 
 def add_new_record(event):
     menu_q = fetch_current_menu(event)
-    if menu_q is None: return None
-    if forge.contains_invalid_char(event) == False: return None
+    if menu_q is None:
+        return None
+    if forge.contains_invalid_char(event) == False:
+        return None
 
     # 'name', ['Fr|0:29.11', '0:30.45']
     swimmer, times_list = forge.parse_user_text(event)
 
-    times = '_'.join(times_list)
+    times = "_".join(times_list)
     new_record = Record(menu_q.menuid, swimmer, times)
     db.session.add(new_record)
     db.session.commit()
 
-    repeat_with_pipe = '\n'.join([swimmer, *times_list])
-    repeat = repeat_with_pipe.replace('|', ' ')
-    event.send_text(repeat, '登録成功✨')
+    repeat_with_pipe = "\n".join([swimmer, *times_list])
+    repeat = repeat_with_pipe.replace("|", " ")
+    event.send_text(repeat, "登録成功✨")
 
 
 def fetch_current_menu(event):
     menu_id = event.menu_id
     if menu_id == 0:
-        event.send_text('メニューを選択してください！')
+        event.send_text("メニューを選択してください！")
         return None
 
     menu_q = Menu.query.get(menu_id)
     if menu_q is None:
-        event.send_text('メニューが見つかりませんでした...')
+        event.send_text("メニューが見つかりませんでした...")
         return None
     else:
         return menu_q
@@ -92,57 +96,55 @@ def fetch_current_menu(event):
 def pick_record(event, record_id: int):
     target_record = Record.query.get(record_id)
     if target_record is None:
-        event.send_text('記録が見つかりませんでした...')
+        event.send_text("記録が見つかりませんでした...")
         return None
     primitive_text = revert_to_primitive_text(target_record)
     delrec_button = flex.build_delete_record_button(target_record.recordid)
 
-    primitive_text_wrap = {
-        "type": "text",
-        "text": primitive_text
-    }
+    primitive_text_wrap = {"type": "text", "text": primitive_text}
     delrec_button_wrap = {
         "type": "flex",
-        "altText": 'この記録を削除',
-        "contents": delrec_button
+        "altText": "この記録を削除",
+        "contents": delrec_button,
     }
     event.reply([primitive_text_wrap, delrec_button_wrap])
 
 
 def revert_to_primitive_text(record: Record) -> str:
-    style_separator = '|'
-    line_separator = '_'
+    style_separator = "|"
+    line_separator = "_"
     time_text = record.times
-    time_text_multi_line = time_text. \
-        replace(':',''). \
-        replace('.',''). \
-        replace(style_separator, ' '). \
-        replace(line_separator, '\n')
+    time_text_multi_line = (
+        time_text.replace(":", "")
+        .replace(".", "")
+        .replace(style_separator, " ")
+        .replace(line_separator, "\n")
+    )
     swimmer = record.swimmer
-    primitive_text = f'{swimmer}\n{time_text_multi_line}'
+    primitive_text = f"{swimmer}\n{time_text_multi_line}"
     return primitive_text
 
 
 def delete_record(event, record_id: int):
     target_record = Record.query.get(record_id)
     if target_record is None:
-        event.send_text('記録が見つかりませんでした...')
+        event.send_text("記録が見つかりませんでした...")
         return None
     swimmer = target_record.swimmer
     db.session.delete(target_record)
     db.session.commit()
-    event.send_text(f'{swimmer}のタイムを削除したよ！')
+    event.send_text(f"{swimmer}のタイムを削除したよ！")
 
 
 def ask_whether_delete_menu(event, menu_id: int):
     target_menu = Menu.query.get(menu_id)
     if target_menu is None:
-        event.send_text('メニューが見つかりませんでした...')
+        event.send_text("メニューが見つかりませんでした...")
         return None
     count_records = Record.query.filter_by(menuid=menu_id).count()
     flex_menu_caution = flex.build_delete_menu_caution(target_menu, count_records)
 
-    alt_text = 'メニューを消去しますか？'
+    alt_text = "メニューを消去しますか？"
     event.send_flex(alt_text, [flex_menu_caution])
     event.aim_menu_id(menu_id)
 
@@ -150,13 +152,16 @@ def ask_whether_delete_menu(event, menu_id: int):
 def delete_menu(event, menu_id: int):
     current_menu = event.menu_id
     if current_menu != menu_id:
-        event.send_text('もう一度メニューを選択し直してください')
+        event.send_text("もう一度メニューを選択し直してください")
         return None
 
     count_deleted_menu = Menu.query.filter_by(menuid=menu_id).delete()
     count_deleted_rec = Record.query.filter_by(menuid=menu_id).delete()
     db.session.commit()
-    event.send_text(f'{count_deleted_menu}個のメニューと{count_deleted_rec}件のタイムを完全に消去しちゃいました')
+    event.send_text(
+        f"{count_deleted_menu}個のメニューと{count_deleted_rec}件のタイムを完全に消去しちゃいました"
+    )
+
 
 # with open('de.py', 'w', encoding='UTF8') as f:
 #     import json

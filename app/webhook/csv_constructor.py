@@ -1,6 +1,6 @@
 import re
 from itertools import zip_longest
-from app.models import Record, Menu
+from api.models import Record, Menu
 
 # CSV内での改行コードはCRLF
 # めちゃくちゃだあ
@@ -143,17 +143,21 @@ def export_matrix(swimmer, time_list, style_list, needed_lines):
             matrix += [list(map(val_to_efmt, lap))]
             if max(w) >= 6:  # 200mごとのラップ
                 lap = [
-                    0
-                    if weight == 0 or weight % 4 > 0
-                    else base_val[i] - base_val[i - 4]
+                    (
+                        0
+                        if weight == 0 or weight % 4 > 0
+                        else base_val[i] - base_val[i - 4]
+                    )
                     for i, weight in enumerate(w)
                 ]
                 matrix += [list(map(val_to_efmt, lap))]
                 if max(w) >= 10:  # 400mごとのラップ
                     lap = [
-                        0
-                        if weight == 0 or weight % 8 > 0
-                        else base_val[i] - base_val[i - 8]
+                        (
+                            0
+                            if weight == 0 or weight % 8 > 0
+                            else base_val[i] - base_val[i - 8]
+                        )
                         for i, weight in enumerate(w)
                     ]
                     matrix += [list(map(val_to_efmt, lap))]
@@ -168,7 +172,9 @@ def export_matrix(swimmer, time_list, style_list, needed_lines):
     return matrix_proper
 
 
-fmt_ptn = re.compile("([0-9]{1,2}):([0-9]{2}).([0-9]{2})")  # 15分とかのときは：の前は2文字になる
+fmt_ptn = re.compile(
+    "([0-9]{1,2}):([0-9]{2}).([0-9]{2})"
+)  # 15分とかのときは：の前は2文字になる
 
 
 def fmt_to_val(fmt):

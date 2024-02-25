@@ -2,11 +2,12 @@ import os
 import datetime
 from copy import deepcopy
 
-from app.webhook import flex_components as components
+from api.webhook import flex_components as components
 
 layer_capacity = 4
 
-LIFF_URL = os.environ['LIFF_URL']
+LIFF_URL = os.environ["LIFF_URL"]
+
 
 def build_menus(target_date: datetime.date, queries) -> dict:
     # TODO: メニュー作成URLを指定
@@ -17,18 +18,26 @@ def build_menus(target_date: datetime.date, queries) -> dict:
     menu_wrap = deepcopy(components.menu_wrap)
 
     today_japanese = date_jpn_period_chain(target_date)
-    today_hyphenated = target_date.strftime('%Y-%m-%d')
-    today_int = int(target_date.strftime('%y%m%d'))
+    today_hyphenated = target_date.strftime("%Y-%m-%d")
+    today_int = int(target_date.strftime("%y%m%d"))
     yesterday = target_date - datetime.timedelta(days=1)
     tomorrow = target_date + datetime.timedelta(days=1)
-    yesterday_int = int(yesterday.strftime('%y%m%d'))
-    tomorrow_int = int(tomorrow.strftime('%y%m%d'))
+    yesterday_int = int(yesterday.strftime("%y%m%d"))
+    tomorrow_int = int(tomorrow.strftime("%y%m%d"))
 
-    menu_wrap["body"]["contents"][0]["contents"][0]["action"]["data"] = f'date={yesterday_int}'
-    menu_wrap["body"]["contents"][0]["contents"][2]["action"]["data"] = f'date={tomorrow_int}'
+    menu_wrap["body"]["contents"][0]["contents"][0]["action"][
+        "data"
+    ] = f"date={yesterday_int}"
+    menu_wrap["body"]["contents"][0]["contents"][2]["action"][
+        "data"
+    ] = f"date={tomorrow_int}"
     menu_wrap["body"]["contents"][0]["contents"][1]["text"] = today_japanese
-    menu_wrap["body"]["contents"][0]["contents"][1]["action"]["initial"] = today_hyphenated
-    menu_wrap["body"]["contents"][-1]["action"]["uri"] = f'{LIFF_URL}/new-menu/{today_int}'
+    menu_wrap["body"]["contents"][0]["contents"][1]["action"][
+        "initial"
+    ] = today_hyphenated
+    menu_wrap["body"]["contents"][-1]["action"][
+        "uri"
+    ] = f"{LIFF_URL}/new-menu/{today_int}"
 
     if embedded_menu_cards:
         # contents内の二個目以降の要素として組み込み挿入
@@ -43,11 +52,17 @@ def build_menu_transaction(menu_query) -> dict:
     card = build_menu_base_card(menu_query)
 
     date_int = menu_query.date
-    target_date = datetime.datetime.strptime(str(date_int), '%y%m%d')
+    target_date = datetime.datetime.strptime(str(date_int), "%y%m%d")
     menu_transaction_wrap = deepcopy(components.menu_transaction_wrap)
-    menu_transaction_wrap["body"]["contents"][0]["text"] = date_jpn_period_chain(target_date)
-    menu_transaction_wrap["body"]["contents"][1]["contents"][-1]["contents"][0]["action"]["data"] = f'ask={menu_query.menuid}'
-    menu_transaction_wrap["body"]["contents"][1]["contents"][-1]["contents"][2]["action"]["uri"] = f'{LIFF_URL}/menu/{menu_query.menuid}'
+    menu_transaction_wrap["body"]["contents"][0]["text"] = date_jpn_period_chain(
+        target_date
+    )
+    menu_transaction_wrap["body"]["contents"][1]["contents"][-1]["contents"][0][
+        "action"
+    ]["data"] = f"ask={menu_query.menuid}"
+    menu_transaction_wrap["body"]["contents"][1]["contents"][-1]["contents"][2][
+        "action"
+    ]["uri"] = f"{LIFF_URL}/menu/{menu_query.menuid}"
 
     menu_transaction_wrap["body"]["contents"][1]["contents"][0:0] = [card]
     return menu_transaction_wrap
@@ -65,7 +80,7 @@ def build_records_scroll(record_queries: list) -> dict:
     tmp_contents = []
 
     iter = yield_layer(record_queries)
-    for idx_layer, layer in enumerate(iter, 1): # idxは1からはじまる
+    for idx_layer, layer in enumerate(iter, 1):  # idxは1からはじまる
         tmp_contents.append(layer)
         tmp_contents.append({"type": "separator"})
 
@@ -83,19 +98,16 @@ def build_records_scroll(record_queries: list) -> dict:
 
     # 複数のバブルを送るため、カルーセルにまとめる
     else:
-        carousel = {
-          "type": "carousel",
-          "contents": bubbles
-        }
+        carousel = {"type": "carousel", "contents": bubbles}
         return carousel
 
 
 def date_jpn_period_chain(target_date: datetime.date) -> str:
     # 2020.09.12 土
-    period_chain = target_date.strftime('%Y.%m.%d')
+    period_chain = target_date.strftime("%Y.%m.%d")
     week_num = target_date.weekday()
-    youbi = ['月', '火', '水', '木', '金', '土', '日'][week_num]
-    return f'{period_chain} {youbi}'
+    youbi = ["月", "火", "水", "木", "金", "土", "日"][week_num]
+    return f"{period_chain} {youbi}"
 
 
 def build_menu_base_card(menu_query, button=False) -> dict:
@@ -105,15 +117,17 @@ def build_menu_base_card(menu_query, button=False) -> dict:
 
     # 空白文字だった場合は空白を補足
     # 空白文字をFlexで送信できないため
-    card["contents"][0]["contents"][0]["contents"][0]["text"] = menu_query.category or ' '
-    card["contents"][0]["contents"][1]["text"] = menu_query.description or ' '
-    card["contents"][1]["text"] = menu_query.cycle or ' '
+    card["contents"][0]["contents"][0]["contents"][0]["text"] = (
+        menu_query.category or " "
+    )
+    card["contents"][0]["contents"][1]["text"] = menu_query.description or " "
+    card["contents"][1]["text"] = menu_query.cycle or " "
 
     if button:
         card["action"] = {
-          "type": "postback",
-          "data": f"menu={menu_query.menuid}",
-          "displayText": "このメニューを選択"
+            "type": "postback",
+            "data": f"menu={menu_query.menuid}",
+            "displayText": "このメニューを選択",
         }
     return card
 
@@ -124,7 +138,7 @@ def yield_layer(record_queries: list) -> dict:
     max_index = len(record_queries)
     for idx in range(0, max_index, layer_capacity):
         start = idx
-        end = idx + layer_capacity # max_indexを超えることがあるが問題ない
+        end = idx + layer_capacity  # max_indexを超えることがあるが問題ない
         chunk = record_queries[start:end]
         cells = [build_record_cell(record) for record in chunk]
         layer = build_record_layer(cells)
@@ -134,12 +148,12 @@ def yield_layer(record_queries: list) -> dict:
 def build_record_cell(rec_q) -> dict:
     cell = deepcopy(components.record_cell)
 
-    chained_time_no_pipe = rec_q.times.replace('|', ' ')
-    time_list = chained_time_no_pipe.split('_')
-    text = '\n'.join([rec_q.swimmer] + time_list)
+    chained_time_no_pipe = rec_q.times.replace("|", " ")
+    time_list = chained_time_no_pipe.split("_")
+    text = "\n".join([rec_q.swimmer] + time_list)
 
     cell["text"] = text
-    cell["action"]["data"] = f'rec={rec_q.recordid}'
+    cell["action"]["data"] = f"rec={rec_q.recordid}"
     return cell
 
 
@@ -153,7 +167,7 @@ def build_record_layer(record_cells: list) -> dict:
 
 def build_delete_record_button(record_id: int) -> dict:
     button = deepcopy(components.delrec_button)
-    button["body"]["contents"][0]["action"]["data"] = f'delrec={record_id}'
+    button["body"]["contents"][0]["action"]["data"] = f"delrec={record_id}"
     return button
 
 
@@ -161,13 +175,19 @@ def build_delete_menu_caution(menu_query, expected_count_records: int) -> dict:
     card = build_menu_base_card(menu_query)
 
     date_int = menu_query.date
-    target_date = datetime.datetime.strptime(str(date_int), '%y%m%d')
+    target_date = datetime.datetime.strptime(str(date_int), "%y%m%d")
 
     delmenu_ask_wrap = deepcopy(components.delmenu_ask_wrap)
     delmenu_ask_wrap["body"]["contents"][0]["text"] = date_jpn_period_chain(target_date)
-    delmenu_ask_wrap["body"]["contents"][2]["contents"][1]["text"] = f'このメニューに含まれる{expected_count_records}個のタイムも削除されます'
-    delmenu_ask_wrap["body"]["contents"][2]["contents"][2]["contents"][0]["action"]["data"] = f'cancel={menu_query.menuid}'
-    delmenu_ask_wrap["body"]["contents"][2]["contents"][2]["contents"][1]["action"]["data"] = f'delmenu={menu_query.menuid}'
+    delmenu_ask_wrap["body"]["contents"][2]["contents"][1][
+        "text"
+    ] = f"このメニューに含まれる{expected_count_records}個のタイムも削除されます"
+    delmenu_ask_wrap["body"]["contents"][2]["contents"][2]["contents"][0]["action"][
+        "data"
+    ] = f"cancel={menu_query.menuid}"
+    delmenu_ask_wrap["body"]["contents"][2]["contents"][2]["contents"][1]["action"][
+        "data"
+    ] = f"delmenu={menu_query.menuid}"
     delmenu_ask_wrap["body"]["contents"][1] = card
 
     return delmenu_ask_wrap
