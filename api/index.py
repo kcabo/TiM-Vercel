@@ -8,8 +8,8 @@ LIFF_ID = os.environ["LIFF_ID"]
 
 app = Flask(
     __name__,
-    template_folder="api/_app/liff/templates",
-    static_folder="api/_app/liff/static",
+    template_folder="_app/liff/templates",
+    static_folder="_app/liff/static",
 )
 app.config.from_object("api._app.config.Config")
 db.init_app(app)
