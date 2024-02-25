@@ -6,7 +6,11 @@ from api._app.webhook import event
 
 LIFF_ID = os.environ["LIFF_ID"]
 
-app = Flask(__name__, template_folder="liff/templates", static_folder="liff/static")
+app = Flask(
+    __name__,
+    template_folder="api/_app/liff/templates",
+    static_folder="api/_app/liff/static",
+)
 app.config.from_object("api._app.config.Config")
 db.init_app(app)
 
