@@ -7,7 +7,7 @@ from api._app.webhook import handler
 LIFF_ID = os.environ["LIFF_ID"]
 
 app = Flask(__name__, template_folder="liff/templates", static_folder="liff/static")
-app.config.from_object("_app.config.Config")
+app.config.from_object("api._app.config.Config")
 db.init_app(app)
 
 
