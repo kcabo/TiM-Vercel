@@ -2,7 +2,8 @@ import os
 import datetime
 from copy import deepcopy
 
-from . import flex_components as components
+# from . import flex_components as components
+components = {}
 
 layer_capacity = 4
 
