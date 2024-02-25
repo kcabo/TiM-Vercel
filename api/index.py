@@ -1,7 +1,8 @@
 import os
 from flask import Flask, request, render_template, jsonify, make_response
 
-# from api._app.models import db, Menu
+from api._app.models import db, Menu
+
 # from api._app.webhook import handler
 
 LIFF_ID = os.environ["LIFF_ID"]
