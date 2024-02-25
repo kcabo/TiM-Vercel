@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=denvice-width, initial-scale=1, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="robots" content="noindex,nofollow">
+  <title>TiM</title>
+  <meta name="description" content="Menu Modifier for TiM">
+  <!-- <meta name="format-detection" content="email=no,telephone=no,address=no"> -->
+  <!-- <link rel="icon" type="image/png" href="/static/img/icon-32x32.png"> -->
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <link rel="stylesheet" href="/static/css/menu.min.css?2">
+</head>
+
+<body>
+
+  <div id="app">
+    <div class="header">
+      <div class="date">${date}</div>
+    </div>
+
+    <div class="form-group">
+      <form-unit v-bind="category" v-model="category.content"></form-unit>
+      <form-unit v-bind="description" v-model="description.content"></form-unit>
+      <form-unit v-bind="cycle" v-model="cycle.content"></form-unit>
+    </div>
+
+
+    <div class="buttons">
+      <div class="submit" v-if="purpose === 'menu'" v-on:click.prevent="submit" v-on:touchend.prevent="submit">メニュー更新</div>
+      <div class="submit" v-else v-on:click.prevent="submit" v-on:touchend.prevent="submit">メニュー作成</div>
+      <div class="cancel" v-on:click.prevent="cancel" v-on:touchend.prevent="cancel">キャンセル</div>
+    </div>
+
+  </div>
+
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    window.onload = function() {
+      let myLiffId = '{{LIFF_ID}}';
+      liff
+        .init({ liffId: myLiffId })
+        .then(() => {
+          console.log(liff.isInClient());
+        })
+        .catch((err) => {
+          console.log(err.code, err.message);
+        });
+    };
+  </script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
+  <script src="/static/js/menu.js"></script>
+</body>
+
+</html>
