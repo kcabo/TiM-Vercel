@@ -5,6 +5,7 @@ from .redis_setup import conn
 
 ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
 ENV = os.environ["FLASK_ENV"]  # 環境判定
+MY_LINE_ID = os.environ["MY_LINE_ID"]
 
 
 class Event:
@@ -35,7 +36,6 @@ class Event:
 
         # 以下テスト用
         if ENV == "development":
-            MY_LINE_ID = os.environ.get("MY_LINE_ID")
             url = "https://api.line.me/v2/bot/message/push"
             data = {"to": MY_LINE_ID, "messages": msg_list}
         # テスト用ここまで
@@ -81,11 +81,13 @@ class Event:
 
 
 def notify(message):
-    LINE_NOTIFY_ACCESS_TOKEN = os.environ["NOTIFY_ACCESS_TOKEN"]
-    url = "https://notify-api.line.me/api/notify"
-    headers = {"Authorization": "Bearer " + LINE_NOTIFY_ACCESS_TOKEN}
-    data = {"message": message}
-    response = requests.post(url, headers=headers, data=data)
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + ACCESS_TOKEN,
+    }
+    data = {"to": MY_LINE_ID, "messages": [{"type": "text", "text": message}]}
+    response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         print(response.json())
-        raise Exception("LINE Notifyによる通知に失敗")
+        raise Exception("LINE MessagingAPIによる通知に失敗")
